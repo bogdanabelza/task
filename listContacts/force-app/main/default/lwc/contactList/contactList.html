@@ -1,0 +1,241 @@
+<!-- TODO: 1) Нужно сделать кастомный лист вью LWC компонент который выводит записи из объекта Contact
+    TODO: 2) На лист вью должны выводится такие поля: First Name, Last Name, Email, Phone, Title 
+    TODO: (Вывести внизу или вверху сколько контактов всего есть)
+    ----------------------------------------------------------
+    TODO: 3) При загрузке лист вью по-умолчанию должно отображаться 10 записей, но админ должен иметь возможно задать любое другое число записей которые показываются при инициализации листа.
+    TODO: 4) Если в системе записей больше чем указано в пункте №3, то отображать пагинацию, а и именно кнопки Prev и Next, с помощью которых юзер сможет увидеть остальные записи.
+    ----------------------------------------------------------
+    TODO: 5) Изначально лист должен быть отсортирован в полю Last Name в порядке возростания.
+    ----------------------------------------------------------
+    TODO: 6) Должна быть возможность отредактировать любой контакт с лист вью, с помощью кнопки Edit, при нажатии на которую, 
+    TODO: будет открываться модальное окно в котором можно будет отредактировать и сохранить запись
+    TODO: 7) Должна быть возможность создать новый контакт с лист вью, с помощью кнопки Add Contact, при нажатии на которую будет открываться модальное окно 
+    TODO: в котором можно будет указать данные полей указанных в пункте №2.
+    ----------------------------------------------------------
+    TODO: 8) Компонент должен быть безопасный, чтоб другие сейлсфорс юзеры, которые не должны видеть те или иные записи/данные, не могли их видеть
+
+
+    ? 1.установить на модалке кнопки эдит поля с уже задаными значениями
+    ? 2.как получить доступ к айди рекорда при нажатии кнопки эдит
+    
+-->
+<template>
+    <lightning-card title = "List Contacts" icon-name = "standard:contact">
+        <!-- <div>Total contacts: {totalConts}</div> -->
+
+
+        <!-- *add contact btn -->
+        <template if:true={theBtnCreateIsHidden}>
+            <div class="slds-media__body">
+                <div class="slds-float--right btn-margin">
+                    <lightning-button variant="brand" label="Add Contact" 
+                        title="Add Contact" onclick={handleClickAdd} class = "slds-m-right_x-small">
+                    </lightning-button>
+                </div>
+            </div>
+        </template>
+        
+            <!-- *modal start -->        
+            <template if:true={showModal}>
+            
+                <section role="dialog" tabindex="-1" aria-labelledby="modal-heading-01" aria-modal="true" aria-describedby="modal-content-id-1" class="slds-modal slds-fade-in-open">
+                    <div class="slds-modal__container">
+                        <!-- modal header start -->
+                        <header class="slds-modal__header">
+                            <button class="slds-button slds-button_icon slds-modal__close slds-button_icon-inverse" title="Close" onclick={customHideModalPopup}>
+                                <lightning-icon icon-name="utility:close"
+                                    alternative-text="close"
+                                    variant="inverse"
+                                    size="small" >
+                                </lightning-icon>
+                                <span class="slds-assistive-text">Close</span>
+                            </button>
+                            <h2 class="slds-text-heading_medium slds-hyphenate">Contact</h2>
+                        </header>
+                        <!-- modal body start -->
+                        <div class="slds-modal__content slds-p-around_medium">
+                            <div class="slds-grid slds-wrap">
+                                <div class="slds-col slds-size_6-of-12 slds-p-horizontal--medium slds-m-bottom_medium">
+                                    <!-- <lightning-input label="Id" disabled value={conts.Id}></lightning-input> -->
+                                    <lightning-input
+                                        data-field="FirstName" 
+                                        type = "text" 
+                                        name = "FirstName" 
+                                        value={fName} 
+                                        onchange ={handleChange} 
+                                        label = "First Name" 
+                                        pattern = "^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$"
+                                        message-when-pattern-mismatch="Not a valid first name"
+                                        message-when-value-missing="First name is required"
+                                        maxlength="20"
+                                        message-when-too-long="Your first name must not be more than 20 characters."
+                                        minlength="2"
+                                        message-when-too-short="Your first name must be more 2 characters."
+                                        required>
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-p-horizontal--medium slds-m-bottom_medium">
+                                    <lightning-input 
+                                        data-field="LastName" 
+                                        type = "text" 
+                                        name = "LastName" 
+                                        value={lName} 
+                                        onchange ={handleChange} 
+                                        label = "Last Name" 
+                                        pattern = "^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$"
+                                        message-when-pattern-mismatch="Not a valid last name"
+                                        message-when-value-missing="Last name is required"
+                                        maxlength="20"
+                                        message-when-too-long="Your last name must not be more than 20 characters."
+                                        minlength="2"
+                                        message-when-too-short="Your last name must be more 2 characters."
+                                        required>
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-p-horizontal--medium slds-m-bottom_medium">
+                                    <lightning-input 
+                                        type = "email" 
+                                        data-field= "Email"
+                                        name="Email" 
+                                        value={email} 
+                                        onchange ={handleChange} 
+                                        label = "Email" 
+                                        pattern = "^[a-z0-9_][a-z0-9\._-]*[a-z0-9_]*@([a-z0-9]+[a-z0-9_-]*[a-z0-9]+\.)+[a-z]+$"
+                                        message-when-pattern-mismatch="Not a valid email"
+                                        message-when-value-missing="Email is required"
+                                        maxlength="30"
+                                        message-when-too-long="Your email address must not be more than 30 characters."
+                                        minlength="5"
+                                        message-when-too-short="Your email address must be more 5 characters."
+                                        required>
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-p-horizontal--medium slds-m-bottom_medium">
+                                    <lightning-input
+                                        type = "tel" 
+                                        data-field= "Phone"
+                                        name="Phone" 
+                                        value={phone} 
+                                        onchange ={handleChange}
+                                        pattern = "[0-9]{3}-[0-9]{3}-[0-9]{4}" 
+                                        placeholder="463-453-5748"
+                                        message-when-pattern-mismatch="Not a valid phone number"
+                                        label = "Phone"
+                                        maxlength="12"
+                                        message-when-too-long="Your first name must not be more than 12 characters.">
+                                    </lightning-input>
+                                </div>
+                                <div class="slds-col slds-size_6-of-12 slds-p-horizontal--medium slds-m-bottom_medium">
+                                    <lightning-input
+                                        type = "text" 
+                                        data-field= "Title"
+                                        name="Title" 
+                                        value={title} 
+                                        onchange ={handleChange} 
+                                        pattern = "^[a-zA-Z]+(([',. -][a-zA-Z ])?[a-zA-Z]*)*$" 
+                                        message-when-pattern-mismatch="Not a valid title"
+                                        label = "Title"
+                                        maxlength="50"
+                                        message-when-too-long="Your first name must not be more than 50 characters."
+                                        minlength="2"
+                                        message-when-too-short="Your first name must be more 2 characters.">
+                                    </lightning-input>
+                                </div>
+                            </div>
+                        <!-- modal footer start-->
+                            <footer class="slds-modal__footer">
+                                <lightning-button class="slds-m-left_x-small slds-m-right_medium" label="Cancel" 
+                                    title="Cancel" variant="brand-outline" onclick={customHideModalPopup}>
+                                </lightning-button>
+                                <template if:true={btnSaveAdd}>
+                                    <lightning-button class="slds-m-right_x-small" label="Save" 
+                                        title="Save" variant="brand" onclick={saveAddRecord} disabled={disabled}>
+                                    </lightning-button>
+                                </template>
+                                <template if:true={btnSaveEdit}>
+                                    <lightning-button class="slds-m-right_x-small" label="Update"  data-id={conts.Id}
+                                        title="Update" variant="brand" onclick={updateCont} disabled={disabled}>
+                                    </lightning-button>
+                                </template>
+                            </footer>
+                        </div>
+                    </div>
+                </section>
+                <div class="slds-backdrop slds-backdrop_open"></div>
+            </template>
+            <!-- *modal end --> 
+
+        <template if:true={conts}>
+            <!-- *таблица контактов -->
+            <table class="slds-table slds-table_cell-buffer slds-table_bordered table-numeration">
+                <thead>
+                    <tr class="slds-line-height_reset">
+                        <!-- <th class = "" scope = "col">
+                            <div class="slds-truncate" title="№">№</div>
+                        </th> -->
+                        <th class = "" scope = "col">
+                            <div class="slds-truncate" title="First Name">First Name</div>
+                        </th>
+                        <th class = "" scope = "col">
+                            <div class="slds-truncate" title="Last Name">Last Name</div>
+                        </th>
+                        <th class = "" scope = "col">
+                            <div class="slds-truncate" title="Email">Email</div>
+                        </th>
+                        <th class = "" scope = "col">
+                            <div class="slds-truncate" title="Phone">Phone</div>
+                        </th>
+                        <th class = "" scope = "col">
+                            <div class="slds-truncate" title="Title">Title</div>
+                        </th> 
+                        <th class = "" scope = "col">
+                            <div class="slds-truncate" title="Edit"></div>
+                        </th>           
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <template for:each ={data} for:item = 'cont'>
+                        <tr key ={cont.Id} class="slds-hint-parent">
+                            <!-- <td scope="col"><div class="slds-truncate" title="Num"></div></td> -->
+                            <td scope="col"><div class="slds-truncate" title="First Name">{cont.FirstName}</div></td>
+                            <td scope="col"><div class="slds-truncate" title="Last Name">{cont.LastName}</div></td>
+                            <td scope="col"><div class="slds-truncate" title="Email"><lightning-formatted-email value ={cont.Email}></lightning-formatted-email></div></td>
+                            <td scope="col"><div class="slds-truncate" title="Phone"><lightning-formatted-phone value ={cont.Phone}></lightning-formatted-phone></div></td>
+                            <td scope="col"><div class="slds-truncate" title="Title">{cont.Title}</div></td>
+                            <template if:true={theBtnEditIsHidden}>
+                                <td scope="col">
+                                    <div class="slds-truncate">
+                                        <button class="slds-button slds-button_neutral" data-recordid={cont.Id} onclick={handleClickEdit}>
+                                            <svg class="slds-button__icon slds-button__icon_small slds-button__icon_left" aria-hidden="true">
+                                                <use xlink:href="/apexpages/slds/latest/assets/icons/utility-sprite/svg/symbols.svg#add"></use>
+                                            </svg>Edit
+                                        </button>
+                                    </div>
+                                </td>
+                            </template>
+                        </tr>
+                    </template>
+                    
+                </tbody>
+                <!-- <tfoot><tr><td colspan="6">Total contacts: <b></b></td></tr></tfoot> -->
+            </table>
+            <!-- *navigations -->
+            <template if:true={isVisible}>
+                <div class="slds-var-m-around_medium">
+                    <p class="slds-var-m-vertical_medium content">
+                        Displaying {endingRecord} of {totalConts} records.
+                        Page {page} of {totalPage}. 
+                    </p>
+                    <c-paginator onprevious={previousHandler} onnext={nextHandler}></c-paginator>
+                </div>
+            </template>
+            <template if:false={isVisible}>
+                <p class="slds-var-m-vertical_medium content">Displaying {totalConts} records.</p>
+            </template>
+        </template>
+        <template if:true={conts.error}>
+            <p>No data available.</p>  
+        </template>
+    </lightning-card>
+</template>

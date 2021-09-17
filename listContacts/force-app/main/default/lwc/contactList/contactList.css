@@ -1,0 +1,24 @@
+/* .table-numeration {
+    counter-reset: rowNumber; /* переменная в которой хранится счетчик */
+/* }
+
+.table-numeration tbody tr {
+    counter-increment: rowNumber; 
+    /* переменная для увеличения значений счетчика(количество отображений на странице) */
+/* }
+
+.table-numeration tbody tr th:first-child::before,
+.table-numeration b:after {
+    content: counter(rowNumber); 
+}  */
+
+/* .table-numeration tfoot td{
+    padding: .5em 1em;
+    border: 1px solid #000;
+} */
+
+.btn-margin{
+    margin-bottom: 15px;
+}
+
+
